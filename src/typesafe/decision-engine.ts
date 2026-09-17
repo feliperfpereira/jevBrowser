@@ -113,8 +113,23 @@ export class DecisionEngine {
             href: element.href ?? null,
           })),
         },
-        available_values: values.map((candidate) => ({ id: candidate.id, description: candidate.description })),
-        recent_history: history.slice(-5),
+        available_values: values.map((candidate) => ({
+          id: candidate.id,
+          description: candidate.description,
+        })),
+        recent_history: history.slice(-5).map((entry) => ({
+          step: entry.step,
+          url: entry.url,
+          action: entry.action,
+          target: entry.target ?? null,
+          valueSource: entry.valueSource ?? null,
+          actionConfidence: entry.actionConfidence,
+          targetConfidence: entry.targetConfidence ?? null,
+          completionProbability: entry.completionProbability,
+          blockedProbability: entry.blockedProbability,
+          dangerousProbability: entry.dangerousProbability,
+          note: entry.note ?? null,
+        })),
       },
       questions,
     });
@@ -126,8 +141,10 @@ export class DecisionEngine {
         : nextAction.choice === "fill"
           ? answerChoice(response.answers.fill_target)
           : undefined;
-    const valueAnswer = nextAction.choice === "fill" ? answerChoice(response.answers.fill_value) : undefined;
-    const selectAnswer = nextAction.choice === "select" ? answerChoice(response.answers.select_option) : undefined;
+    const valueAnswer =
+      nextAction.choice === "fill" ? answerChoice(response.answers.fill_value) : undefined;
+    const selectAnswer =
+      nextAction.choice === "select" ? answerChoice(response.answers.select_option) : undefined;
 
     return {
       action: (nextAction.choice ?? "fail") as BrowserAction,
