@@ -19,9 +19,9 @@ const ELEMENT_SELECTOR = [
 ].join(",");
 
 export class PlaywrightDriver {
-  private browser?: Browser;
-  private context?: BrowserContext;
-  private page?: Page;
+  private browser: Browser | undefined;
+  private context: BrowserContext | undefined;
+  private page: Page | undefined;
 
   constructor(private readonly config: AgentConfig) {}
 
