@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import "dotenv/config";
 import { runTask } from "./agent/runner.js";
 import { startServer } from "./server.js";
 import type { RunInput } from "./types.js";
