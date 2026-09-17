@@ -1,23 +1,38 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { runTask } from "./agent/runner.js";
 import type { RunInput } from "./types.js";
+import { UI_HTML } from "./ui.js";
 
 export function startServer(port = Number(process.env.JEV_BROWSER_PORT ?? 8787)): void {
   const server = createServer(async (request, response) => {
-    setJson(response);
+    if (request.method === "GET" && (request.url === "/" || request.url === "/index.html")) {
+      setHtml(response);
+      response.writeHead(200);
+      response.end(UI_HTML);
+      return;
+    }
 
     if (request.method === "GET" && request.url === "/health") {
+      setJson(response);
       response.writeHead(200);
       response.end(JSON.stringify({ ok: true }));
       return;
     }
 
+    if (request.method === "GET" && request.url === "/favicon.ico") {
+      response.writeHead(204);
+      response.end();
+      return;
+    }
+
     if (request.method !== "POST" || request.url !== "/run") {
+      setJson(response);
       response.writeHead(404);
       response.end(JSON.stringify({ error: "Not found" }));
       return;
     }
 
+    setJson(response);
     try {
       const input = (await readJson(request)) as RunInput;
       const result = await runTask(input);
@@ -33,6 +48,7 @@ export function startServer(port = Number(process.env.JEV_BROWSER_PORT ?? 8787))
 
   server.listen(port, () => {
     console.log(`jevBrowser listening on http://127.0.0.1:${port}`);
+    console.log(`Open http://127.0.0.1:${port}/ in your browser.`);
   });
 }
 
@@ -53,4 +69,10 @@ async function readJson(request: IncomingMessage): Promise<unknown> {
 function setJson(response: ServerResponse): void {
   response.setHeader("content-type", "application/json; charset=utf-8");
   response.setHeader("cache-control", "no-store");
+}
+
+function setHtml(response: ServerResponse): void {
+  response.setHeader("content-type", "text/html; charset=utf-8");
+  response.setHeader("cache-control", "no-store");
+  response.setHeader("x-content-type-options", "nosniff");
 }
